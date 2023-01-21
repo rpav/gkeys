@@ -1,0 +1,14 @@
+{
+  "name": "gkeys",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gkeys.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ryan Pavlik <rpavlik@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "node-hid": "^2.1.2"
+  }
+}
