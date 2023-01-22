@@ -22,9 +22,9 @@ let deviceInfo = devices.find(function (d) {
 let curHwnd = user32ex.GetForegroundWindow().address();
 let ww = new Hardware(curHwnd);
 
-const watchPath = path.resolve('windowWatcher.js');
-const watchProcess = fork(watchPath, [], 
-    {stdio: ['pipe', 'pipe', 'pipe', 'ipc']});
+const watchPath = path.resolve('./lib/windowWatcher.js');
+const watchProcess = fork(watchPath, [],
+    { stdio: ['pipe', 'pipe', 'pipe', 'ipc'] });
 
 watchProcess.on('message', str => {
     const msg = JSON.parse(str);
@@ -36,11 +36,11 @@ if (deviceInfo) {
     const kb = new HID.HID(deviceInfo.path);
 
     kb.on("data", function (data) {
-        let kx   = data[0];
-        let ky   = data[1];
+        let kx = data[0];
+        let ky = data[1];
         let bits = data[2];
 
-        if(ww && ww.workwindow.isForeground()) {
+        if (ww && ww.workwindow.isForeground()) {
             ww.keyboard.toggleKey("x", !!(bits & 1));
         }
     });
