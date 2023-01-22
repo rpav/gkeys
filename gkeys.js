@@ -36,11 +36,21 @@ const watchProcess = fork(watchPath, [],
 watchProcess.on('message', str => {
     const msg = JSON.parse(str);
     ww.workwindow.set(msg.hwnd);
-    say("msg: ", msg);
-
     curProfile = profileManager.findProfileByName(msg.profile);
-    say(curProfile);
+
+    say("Switched to '", msg.basename,"', profile: '", curProfile.name, "'")
 });
+
+function sendEvent(name, state) {
+    switch(name) {
+        case 'lmb': ww.mouse.toggle('left', state); break;
+        case 'mmb': ww.mouse.toggle('middle', state); break;
+        case 'rmb': ww.mouse.toggle('right', state); break;
+
+        default:
+            ww.keyboard.toggleKey(name, state);
+    }
+}
 
 if (deviceInfo) {
     const kb = new HID.HID(deviceInfo.path);
@@ -55,9 +65,8 @@ if (deviceInfo) {
             let row = layer[ky];
             let k = row && row[kx];
 
-            if (k) {
-                ww.keyboard.toggleKey(k, !!(bits & 1));
-            }
+            //say(kx, ", ", ky, ": '", k,"'");
+            if (k) sendEvent(k, !!(bits & 1));
         }
     });
     kb.on("error", function (err) { say("error ", err); })
