@@ -5,7 +5,9 @@ const ffi = require('ffi-napi');
 
 const path = require('path');
 const ps = require('process');
-const rl = require('readline');
+const RL = require('readline')
+const rl = RL.createInterface({ input: ps.stdin, output: null, terminal: true });
+
 const { fork } = require('child_process');
 
 const GKeyUSB = require('./lib/GKeyUSB.js');
@@ -39,6 +41,7 @@ watchProcess.on('message', str => {
 });
 
 function sendEvent(name, state) {
+    
     switch (name) {
         case 'lmb': ww.mouse.toggle('left', state); break;
         case 'mmb': ww.mouse.toggle('middle', state); break;
@@ -50,13 +53,18 @@ function sendEvent(name, state) {
 }
 
 if (usbdev.deviceInfo) {
-    usbdev.open();
+    RL.emitKeypressEvents(ps.stdin);
 
-    rl.createInterface({ input: ps.stdin, output: ps.stdout }).on('SIGINT', () => {
-        usbdev.setGKeysMode(false);
-        usbdev.close();
-        ps.exit();
+    ps.stdin.setRawMode(true);
+    ps.stdin.on('keypress', (str, key) => {
+        if (key.name == 'c' && key.ctrl) {
+            usbdev.setGKeysMode(false);
+            usbdev.close();
+            ps.exit();
+        }
     });
+
+    usbdev.open();
     usbdev.setGKeysMode();
 
     usbdev.on("key", (kev) => {
@@ -66,9 +74,7 @@ if (usbdev.deviceInfo) {
                 let layer = curProfile._curLayer;
                 let row = layer[pos.y];
                 let k = row && row[pos.x];
-
-                say(row, " ", {x: kev.x, y: kev.y}," => ", pos, " = '", k, "'");
-
+                
                 if (k) sendEvent(k, kev.state);
             }
         } catch (e) {
