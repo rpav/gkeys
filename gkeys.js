@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const HID = require('node-hid');
-const { say, str } = require("./util.js");
+const { say, str } = require("./lib/util.js");
 const { Hardware } = require('keysender');
 const ffi = require('ffi-napi');
 
