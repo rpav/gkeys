@@ -41,7 +41,7 @@ if (usbdev.deviceInfo) {
     usbdev.on("key", (kev) => {
         try {
             const k = profileManager.findMappingFromKev(kev);
-            if (k) eventManager.sendEvent(k, kev.state);
+            if (k) eventManager.sendEvent(k, kev.state, kev);
         } catch (e) {
             say(e);
         }
