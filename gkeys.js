@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const {say, str} = require('./lib/util.js');
+const {prn, str} = require('./lib/util.js');
 
 const path = require('path');
 const ps = require('process');
@@ -20,7 +20,7 @@ profileManager.loadProfiles();
 
 eventManager.windowTracker.on('profile-changed', (profile, exe) => {
     profileManager.setCurrentProfile(profileManager.findProfileByName(profile));
-    say('Switched to \'', exe, '\', profile: \'',
+    prn('Switched to \'', exe, '\', profile: \'',
         profileManager._curProfile.name, '\'')
 });
 
@@ -42,13 +42,13 @@ if(usbdev.deviceInfo) {
 
     usbdev.on('key', (kev) => {
         try {
-            const k = profileManager.findMappingFromKev(kev);
+            const [k, pos] = profileManager.findMappingFromKev(kev);
             if(k)
-                eventManager.sendEvent(k, kev.state, kev);
+                eventManager.sendEvent(k, kev.state, pos);
         } catch(e) {
-            say(e);
+            prn(e);
         }
     });
 } else {
-    say('No device found.');
+    prn('No device found.');
 }

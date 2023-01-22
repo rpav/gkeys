@@ -4,13 +4,13 @@ const ps = require('process');
 const RL = require('readline')
 const rl = RL.createInterface({ input: ps.stdin, output: null, terminal: true });
 
-const { say, str } = require("./lib/util.js");
+const { prn, str } = require("./lib/util.js");
 const GKeyUSB = require('./lib/GKeyUSB.js');
 
 let usbdev = new GKeyUSB(0x03a8, 0xa649);
 
 if (!usbdev.deviceInfo) {
-    say("No device found.");
+    prn("No device found.");
     ps.exit(1);
 }
 
@@ -19,15 +19,15 @@ let curRow = 0;
 let curCol = 0;
 
 function printMsg() {
-    say("Press keys in row ", curRow, ", press Enter for next row or Ctrl+C to finish");
+    prn("Press keys in row ", curRow, ", press Enter for next row or Ctrl+C to finish");
 }
 
 function printResults() {
     for(let i = 0; i < rows.length; i++)
         rows[i] = rows[i] || [];
 
-    say("Copy the following into your settings.js:");
-    say("hwmap: ", rows, ",");
+    prn("Copy the following into your settings.js:");
+    prn("hwmap: ", rows, ",");
 }
 
 RL.emitKeypressEvents(ps.stdin);
