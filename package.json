@@ -9,6 +9,9 @@
   "author": "Ryan Pavlik <rpavlik@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "node-hid": "^2.1.2"
+    "iconv-lite": "^0.6.3",
+    "keysender": "^2.2.1",
+    "node-hid": "^2.1.2",
+    "win32-api": "^20.2.0"
   }
 }
