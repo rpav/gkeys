@@ -17,11 +17,10 @@ const profileManager = new ProfileManager();
 const usbdev = new GKeyUSB(0x03a8, 0xa649);
 
 profileManager.loadProfiles();
-let curProfile = profileManager.profileDefault;
 
 eventManager.windowTracker.on('profile-changed', (profile, exe) => {
-    curProfile = profileManager.findProfileByName(profile);
-    say("Switched to '", exe, "', profile: '", curProfile.name, "'")
+    profileManager.setCurrentProfile(profileManager.findProfileByName(profile));
+    say("Switched to '", exe, "', profile: '", profileManager._curProfile.name, "'")
 });
 
 if (usbdev.deviceInfo) {
@@ -41,14 +40,8 @@ if (usbdev.deviceInfo) {
 
     usbdev.on("key", (kev) => {
         try {
-            if (curProfile && curProfile._curLayer) {
-                let pos = profileManager.translate(kev);
-                let layer = curProfile._curLayer;
-                let row = layer[pos.y];
-                let k = row && row[pos.x];
-
-                if (k) eventManager.sendEvent(k, kev.state);
-            }
+            const k = profileManager.findMappingFromKev(kev);
+            if (k) eventManager.sendEvent(k, kev.state);
         } catch (e) {
             say(e);
         }
