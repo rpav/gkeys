@@ -27,7 +27,7 @@ function printResults() {
         rows[i] = rows[i] || [];
 
     say("Copy the following into your settings.js:");
-    say("mapping: ", rows, ",");
+    say("hwmap: ", rows, ",");
 }
 
 RL.emitKeypressEvents(ps.stdin);
@@ -42,6 +42,7 @@ ps.stdin.on('keypress', (str, key) => {
         ps.exit();
     } else if(key.name == 'return') {
         curRow++;
+        curCol = 0;
         ps.stdout.write("\n");
         printMsg();
     }

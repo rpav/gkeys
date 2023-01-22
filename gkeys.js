@@ -35,11 +35,11 @@ watchProcess.on('message', str => {
     ww.workwindow.set(msg.hwnd);
     curProfile = profileManager.findProfileByName(msg.profile);
 
-    say("Switched to '", msg.basename,"', profile: '", curProfile.name, "'")
+    say("Switched to '", msg.basename, "', profile: '", curProfile.name, "'")
 });
 
 function sendEvent(name, state) {
-    switch(name) {
+    switch (name) {
         case 'lmb': ww.mouse.toggle('left', state); break;
         case 'mmb': ww.mouse.toggle('middle', state); break;
         case 'rmb': ww.mouse.toggle('right', state); break;
@@ -60,12 +60,19 @@ if (usbdev.deviceInfo) {
     usbdev.setGKeysMode();
 
     usbdev.on("key", (kev) => {
-        if (ww && ww.workwindow.isForeground() && curProfile && curProfile._curLayer) {
-            let layer = curProfile._curLayer;
-            let row = layer[kev.y];
-            let k = row && row[kev.x];
+        try {
+            if (ww && ww.workwindow.isForeground() && curProfile && curProfile._curLayer) {
+                let pos = profileManager.translate(kev);
+                let layer = curProfile._curLayer;
+                let row = layer[pos.y];
+                let k = row && row[pos.x];
 
-            if (k) sendEvent(k, kev.state);
+                say(row, " ", {x: kev.x, y: kev.y}," => ", pos, " = '", k, "'");
+
+                if (k) sendEvent(k, kev.state);
+            }
+        } catch (e) {
+            say(e);
         }
     });
 } else {
