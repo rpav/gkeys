@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const {prn, str} = require('./lib/util.js');
+const {prn, say} = require('../lib/util.js');
 
 const path = require('path');
 const ps = require('process');
@@ -8,13 +8,17 @@ const RL = require('readline')
 const rl =
     RL.createInterface({input : ps.stdin, output : null, terminal : true});
 
-const GKeyUSB = require('./lib/GKeyUSB.js');
-const ProfileManager = require('./lib/ProfileManager.js');
-const EventManager = require('./lib/EventManager.js');
+const GKeyUSB = require('../lib/GKeyUSB.js');
+const ProfileManager = require('../lib/ProfileManager.js');
+const EventManager = require('../lib/EventManager.js');
+
+const { _setBundle } = require('../gkeys-api.js');
 
 const eventManager = new EventManager();
 const profileManager = new ProfileManager();
 const usbdev = new GKeyUSB(0x03a8, 0xa649);
+
+_setBundle({eventManager, profileManager, usbdev});
 
 profileManager.loadProfiles();
 
@@ -43,8 +47,7 @@ if(usbdev.deviceInfo) {
     usbdev.on('key', (kev) => {
         try {
             const [k, pos] = profileManager.findMappingFromKev(kev);
-            if(k)
-                eventManager.sendEvent(k, kev.state, pos);
+            eventManager.sendEvent(k, kev.state, pos);
         } catch(e) {
             prn(e);
         }

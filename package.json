@@ -2,7 +2,7 @@
   "name": "gkeys",
   "version": "1.0.0",
   "description": "",
-  "main": "gkeys.js",
+  "main": "./gkeys-api.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,5 +13,8 @@
     "keysender": "^2.2.1",
     "node-hid": "^2.1.2",
     "win32-api": "^20.2.0"
+  },
+  "bin": {
+    "gkeys": "./gkeys.js"
   }
 }

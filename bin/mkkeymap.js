@@ -4,8 +4,8 @@ const ps = require('process');
 const RL = require('readline')
 const rl = RL.createInterface({ input: ps.stdin, output: null, terminal: true });
 
-const { prn, str } = require("./lib/util.js");
-const GKeyUSB = require('./lib/GKeyUSB.js');
+const { prn, str } = require("../lib/util.js");
+const GKeyUSB = require('../lib/GKeyUSB.js');
 
 let usbdev = new GKeyUSB(0x03a8, 0xa649);
 
