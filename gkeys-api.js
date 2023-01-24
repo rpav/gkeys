@@ -23,7 +23,7 @@ class GKeys {
 
     currentLayer() {
         const pm = BUNDLE.profileManager;
-        return pm.currentLayer();
+        return pm.currentLayer().name;
     }
 }
 
@@ -51,7 +51,7 @@ class ToggleLayer {
         const pm = BUNDLE.profileManager;
         const d = data();
 
-        d[ToggleLayerS].stack.push(pm.currentLayer());
+        d[ToggleLayerS].stack.push(pm.currentLayer().name);
         pm.setLayer(pm.findLayer(this.name));
     }
 }
@@ -74,13 +74,34 @@ class ToggleLayerBack {
     }
 }
 
+class ShiftLayer {
+    constructor(name) {
+        this.name = name;
+    }
+
+    exec(state) {
+        const pm = BUNDLE.profileManager;
+        if(state) {
+            this.last = pm.currentLayer();
+            pm.setLayer(pm.findLayer(this.name));
+        } else {
+            pm.setLayer(this.last);
+            this.last = null;
+        }
+    }
+}
+
 function tog(name) { return new ToggleLayer(name); }
 function togback() {
     const d = data();
     return d[ToggleLayerS].togBack;
 }
 
+function shft(name) {
+    return new ShiftLayer(name);
+}
+
 module.exports = {
     _setBundle,
-    gkeys : new GKeys(), tog, togback,
+    gkeys : new GKeys(), tog, togback, shft,
 };
