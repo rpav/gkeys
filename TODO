@@ -2,7 +2,6 @@
 
 ## Stack
 
-- switch profiles toggle, e.g. game to default
 
 ## TODO
 
@@ -18,3 +17,4 @@
   + make Hook a class
   X have EventManager handle per-profile hook settings so if it switches the hooks change
     .. not really useful, we might be inter-profile and hooks can check if they care
++ switch profiles toggle, e.g. game to default
