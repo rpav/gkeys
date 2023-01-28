@@ -3,8 +3,7 @@ const {say} = require('./lib/util.js');
 let BUNDLE;
 
 function _setBundle(b) {
-    if(!BUNDLE)
-        BUNDLE = b;
+    if(!BUNDLE) BUNDLE = b;
 }
 
 function data() { return BUNDLE.profileManager.currentProfileData(); }
@@ -34,49 +33,57 @@ function ToggleLayerSetup() {
     if(!d[ToggleLayerS])
         d[ToggleLayerS] = {
             stack : [],
-            togBack : new ToggleLayerBack(),
         };
 }
 
-class ToggleLayer {
-    constructor(name) {
-        this.name = name;
-        ToggleLayerSetup();
-    }
+function ToggleBack(owner) {
+    const pm = BUNDLE.profileManager;
+    const d = data();
+    const stack = d[ToggleLayerS].stack;
 
-    exec(state) {
-        if(!state)
-            return;
+    if(stack.length == 0) return;
 
-        const pm = BUNDLE.profileManager;
-        const d = data();
+    let top = stack.at(-1);
+    if(top.owner != owner) return false;
 
-        d[ToggleLayerS].stack.push(pm.currentLayer().name);
-        pm.setLayer(pm.findLayer(this.name));
-    }
+    stack.pop();
+    pm.setLayer(pm.findLayer(top.layer));
+    return true;
 }
 
-class ToggleLayerBack {
+class ToggleLayer {
+    constructor(name, isOneshot) {
+        this.name = name;
+        this.isOneshot = isOneshot;
+        ToggleLayerSetup();
+
+        if(isOneshot) {
+            this._osf = (ev, state) => {
+                if(!state) return;
+                if(ToggleBack(this))
+                    BUNDLE.eventManager.postEventHook.delete(this._osf);
+            };
+        }
+    }
+
     exec(state) {
-        if(!state)
-            return;
+        if(!state) return;
 
         const pm = BUNDLE.profileManager;
         const d = data();
-        const stack = d[ToggleLayerS].stack;
 
-        if(stack.length == 0)
-            return;
+        d[ToggleLayerS].stack.push({
+            layer : pm.currentLayer().name,
+            owner : this.isOneshot ? this : undefined
+        });
+        pm.setLayer(pm.findLayer(this.name));
 
-        let old = stack.pop();
-        pm.setLayer(pm.findLayer(old));
+        if(this.isOneshot) { BUNDLE.eventManager.postEventHook.add(this._osf); }
     }
 }
 
 class ShiftLayer {
-    constructor(name) {
-        this.name = name;
-    }
+    constructor(name) { this.name = name; }
 
     exec(state) {
         const pm = BUNDLE.profileManager;
@@ -91,16 +98,15 @@ class ShiftLayer {
 }
 
 function tog(name) { return new ToggleLayer(name); }
-function togback() {
-    const d = data();
-    return d[ToggleLayerS].togBack;
+function one(name) { return new ToggleLayer(name, true); }
+function togback(state) {
+    if(!state) return;
+    ToggleBack();
 }
 
-function shft(name) {
-    return new ShiftLayer(name);
-}
+function shft(name) { return new ShiftLayer(name); }
 
 module.exports = {
     _setBundle,
-    gkeys : new GKeys(), tog, togback, shft,
+    gkeys : new GKeys(), tog, togback, shft, one,
 };
