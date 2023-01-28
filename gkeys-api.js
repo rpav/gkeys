@@ -51,13 +51,12 @@ function ToggleBack(owner) {
     return true;
 }
 
-class ToggleLayer {
-    constructor(name, isOneshot) {
-        this.name = name;
-        this.isOneshot = isOneshot;
+class Toggle {
+    constructor(config) {
+        this.config = config || {};
         ToggleLayerSetup();
 
-        if(isOneshot) {
+        if(this.config.isOneshot) {
             this._osf = (ev, state) => {
                 if(!state) return;
                 if(ToggleBack(this))
@@ -74,11 +73,11 @@ class ToggleLayer {
 
         d[ToggleLayerS].stack.push({
             layer : pm.currentLayer().name,
-            owner : this.isOneshot ? this : undefined
+            owner : this.config.isOneshot ? this : undefined
         });
-        pm.setLayer(pm.findLayer(this.name));
+        pm.setLayer(pm.findLayer(this.config.layer));
 
-        if(this.isOneshot) { BUNDLE.eventManager.postEventHook.add(this._osf); }
+        if(this.config.isOneshot) { BUNDLE.eventManager.postEventHook.add(this._osf); }
     }
 }
 
@@ -97,8 +96,8 @@ class ShiftLayer {
     }
 }
 
-function tog(name) { return new ToggleLayer(name); }
-function one(name) { return new ToggleLayer(name, true); }
+function tog(name) { return new Toggle({layer: name}); }
+function one(name) { return new Toggle({layer: name, isOneshot: true}); }
 function togback(state) {
     if(!state) return;
     ToggleBack();
