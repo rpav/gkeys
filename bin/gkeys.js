@@ -12,13 +12,11 @@ const GKeyUSB = require('../lib/GKeyUSB.js');
 const ProfileManager = require('../lib/ProfileManager.js');
 const EventManager = require('../lib/EventManager.js');
 
-const { _setBundle } = require('../gkeys-api.js');
-
 const eventManager = new EventManager();
 const profileManager = new ProfileManager();
 const usbdev = new GKeyUSB(0x03a8, 0xa649);
 
-_setBundle({eventManager, profileManager, usbdev});
+require('../lib/Bundle.js')._setBundle({eventManager, profileManager, usbdev});
 
 profileManager.loadProfiles();
 

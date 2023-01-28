@@ -1,17 +1,12 @@
 const {say} = require('./lib/util.js');
+const {bundle} = require('./lib/Bundle.js');
 
-let BUNDLE;
-
-function _setBundle(b) {
-    if(!BUNDLE) BUNDLE = b;
-}
-
-function data() { return BUNDLE.profileManager.currentProfileData(); }
+function data() { return bundle().profileManager.currentProfileData(); }
 const D = {};
 
 class GKeys {
     setLayer(name) {
-        const pm = BUNDLE.profileManager;
+        const pm = bundle().profileManager;
 
         let layer = pm.findLayer(name);
         if(layer) {
@@ -22,7 +17,7 @@ class GKeys {
     }
 
     currentLayer() {
-        const pm = BUNDLE.profileManager;
+        const pm = bundle().profileManager;
         return pm.currentLayer().name;
     }
 }
@@ -38,7 +33,7 @@ function ToggleLayerSetup() {
 }
 
 function ToggleBack(owner) {
-    const pm = BUNDLE.profileManager;
+    const pm = bundle().profileManager;
     const d = D;
     const stack = d[ToggleLayerS].stack;
 
@@ -61,7 +56,7 @@ class Toggle {
         if(this.config.isOneshot) {
             this._osf = (ev, state) => {
                 if(!state) return;
-                if(ToggleBack(this)) BUNDLE.eventManager.postEventHook.delete(this._osf);
+                if(ToggleBack(this)) bundle().eventManager.postEventHook.delete(this._osf);
             };
         }
     }
@@ -69,7 +64,7 @@ class Toggle {
     exec(state) {
         if(!state) return;
 
-        const pm = BUNDLE.profileManager;
+        const pm = bundle().profileManager;
         const d = D;
 
         d[ToggleLayerS].stack.push({
@@ -80,7 +75,7 @@ class Toggle {
         if(this.config.profile) pm.setCurrentProfile(pm.findProfileByName(this.config.profile));
         if(this.config.layer) pm.setLayer(pm.findLayer(this.config.layer));
 
-        if(this.config.isOneshot) { BUNDLE.eventManager.postEventHook.add(this._osf); }
+        if(this.config.isOneshot) { bundle().eventManager.postEventHook.add(this._osf); }
     }
 }
 
@@ -88,7 +83,7 @@ class ShiftLayer {
     constructor(name) { this.name = name; }
 
     exec(state) {
-        const pm = BUNDLE.profileManager;
+        const pm = bundle().profileManager;
         if(state) {
             this.last = pm.currentLayer();
             pm.setLayer(pm.findLayer(this.name));
@@ -111,6 +106,5 @@ function togback(state) {
 function shft(name) { return new ShiftLayer(name); }
 
 module.exports = {
-    _setBundle,
     keys : new GKeys(), tog, togback, shft, one, prof,
 };
