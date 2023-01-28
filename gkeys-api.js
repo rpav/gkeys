@@ -7,6 +7,7 @@ function _setBundle(b) {
 }
 
 function data() { return BUNDLE.profileManager.currentProfileData(); }
+const D = {};
 
 class GKeys {
     setLayer(name) {
@@ -29,7 +30,7 @@ class GKeys {
 const ToggleLayerS = Symbol.for("ToggleLayer");
 
 function ToggleLayerSetup() {
-    const d = data();
+    const d = D;
     if(!d[ToggleLayerS])
         d[ToggleLayerS] = {
             stack : [],
@@ -38,7 +39,7 @@ function ToggleLayerSetup() {
 
 function ToggleBack(owner) {
     const pm = BUNDLE.profileManager;
-    const d = data();
+    const d = D;
     const stack = d[ToggleLayerS].stack;
 
     if(stack.length == 0) return;
@@ -47,7 +48,8 @@ function ToggleBack(owner) {
     if(top.owner != owner) return false;
 
     stack.pop();
-    pm.setLayer(pm.findLayer(top.layer));
+    if(top.profile) pm.setCurrentProfile(pm.findProfileByName(top.profile));
+    if(top.layer) pm.setLayer(pm.findLayer(top.layer));
     return true;
 }
 
@@ -59,8 +61,7 @@ class Toggle {
         if(this.config.isOneshot) {
             this._osf = (ev, state) => {
                 if(!state) return;
-                if(ToggleBack(this))
-                    BUNDLE.eventManager.postEventHook.delete(this._osf);
+                if(ToggleBack(this)) BUNDLE.eventManager.postEventHook.delete(this._osf);
             };
         }
     }
@@ -69,13 +70,15 @@ class Toggle {
         if(!state) return;
 
         const pm = BUNDLE.profileManager;
-        const d = data();
+        const d = D;
 
         d[ToggleLayerS].stack.push({
-            layer : pm.currentLayer().name,
+            profile : this.config.profile ? pm.currentProfile().name : undefined,
+            layer : pm.currentLayer().name, // We always want to return to the original layer
             owner : this.config.isOneshot ? this : undefined
         });
-        pm.setLayer(pm.findLayer(this.config.layer));
+        if(this.config.profile) pm.setCurrentProfile(pm.findProfileByName(this.config.profile));
+        if(this.config.layer) pm.setLayer(pm.findLayer(this.config.layer));
 
         if(this.config.isOneshot) { BUNDLE.eventManager.postEventHook.add(this._osf); }
     }
@@ -96,8 +99,10 @@ class ShiftLayer {
     }
 }
 
-function tog(name) { return new Toggle({layer: name}); }
-function one(name) { return new Toggle({layer: name, isOneshot: true}); }
+function tog(name) { return new Toggle({layer : name}); }
+function one(name) { return new Toggle({layer : name, isOneshot : true}); }
+function prof(name, layer) { return new Toggle({profile : name, layer : name}); }
+
 function togback(state) {
     if(!state) return;
     ToggleBack();
@@ -107,5 +112,5 @@ function shft(name) { return new ShiftLayer(name); }
 
 module.exports = {
     _setBundle,
-    gkeys : new GKeys(), tog, togback, shft, one,
+    keys : new GKeys(), tog, togback, shft, one, prof,
 };
