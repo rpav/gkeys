@@ -2,13 +2,11 @@
 
 ## Stack
 
+- gui
+
 
 ## TODO
 
-= repeat keys
-  + delay + resend sufficient? => yes
-  - configurable delays
-- gui
 
 
 ## DONE
@@ -18,3 +16,6 @@
   X have EventManager handle per-profile hook settings so if it switches the hooks change
     .. not really useful, we might be inter-profile and hooks can check if they care
 + switch profiles toggle, e.g. game to default
++ repeat keys
+  + delay + resend sufficient? => yes
+  + configurable delays
