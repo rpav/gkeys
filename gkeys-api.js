@@ -58,7 +58,6 @@ class ToggleLayer {
 
 class ToggleLayerBack {
     exec(state) {
-        say("back?");
         if(!state)
             return;
 

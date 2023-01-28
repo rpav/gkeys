@@ -1,0 +1,15 @@
+# TODO
+
+## Stack
+
+- oneshot, pre/post hooks
+  - make Hook a class
+  - have EventManager handle per-profile hook settings so if it switches the hooks change
+
+## TODO
+
+- switch profiles toggle, e.g. game to default
+= repeat keys
+  + delay + resend sufficient? => yes
+  - configurable delays
+- gui
