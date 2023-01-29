@@ -8,7 +8,6 @@
 ## TODO
 
 
-
 ## DONE
 
 + oneshot, pre/post hooks
@@ -19,3 +18,4 @@
 + repeat keys
   + delay + resend sufficient? => yes
   + configurable delays
++ auto-profile switching delayed until all keys up

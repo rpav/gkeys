@@ -19,10 +19,11 @@ const usbdev = new GKeyUSB(0x03a8, 0xa649);
 require('../lib/Bundle.js')._setBundle({eventManager, profileManager, usbdev});
 
 profileManager.loadProfiles();
+profileManager.setupHooks(eventManager);
 
 eventManager.windowTracker.on('profile-changed', (profile, exe) => {
-    profileManager.setCurrentProfile(profileManager.findProfileByName(profile));
-    prn('Switched to \'', exe, '\', profile: \'', profileManager._curProfile.name, '\'')
+    profileManager.delayedSetCurrentProfile(profileManager.findProfileByName(profile));
+    prn('Switched to \'', exe, '\', profile: \'', profile, '\'')
 });
 
 if(usbdev.deviceInfo) {
