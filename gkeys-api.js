@@ -1,4 +1,4 @@
-const {say} = require('./lib/util.js');
+const {say, prn} = require('./lib/util.js');
 const {bundle} = require('./lib/Bundle.js');
 
 function data() { return bundle().profileManager.currentProfileData(); }
@@ -28,7 +28,7 @@ function ToggleLayerSetup() {
     const d = D;
     if(!d[ToggleLayerS])
         d[ToggleLayerS] = {
-            stack : [],
+            stack: [],
         };
 }
 
@@ -67,13 +67,29 @@ class Toggle {
         const pm = bundle().profileManager;
         const d = D;
 
-        d[ToggleLayerS].stack.push({
-            profile : this.config.profile ? pm.currentProfile().name : undefined,
-            layer : pm.currentLayer().name, // We always want to return to the original layer
-            owner : this.config.isOneshot ? this : undefined
-        });
-        if(this.config.profile) pm.setCurrentProfile(pm.findProfileByName(this.config.profile));
-        if(this.config.layer) pm.setLayer(pm.findLayer(this.config.layer));
+        let frame = {
+            profile: this.config.profile ? pm.currentProfile().name : undefined,
+            layer: pm.currentLayer().name, // We always want to return to the original layer
+            owner: this.config.isOneshot ? this : undefined
+        };
+
+        if(this.config.profile) {
+            let profile = pm.findProfileByName(this.config.profile);
+            if(profile) {
+                pm.setCurrentProfile(profile);
+            } else {
+                prn('Profile not found: ', this.config.profile);
+                return;
+            }
+        }
+
+        d[ToggleLayerS].stack.push(frame);
+
+        if(this.config.layer) {
+            let layer = pm.findLayer(this.config.layer);
+            if(layer) pm.setLayer(layer);
+            else prn('Layer not found: ', this.config.layer);
+        }
 
         if(this.config.isOneshot) { bundle().eventManager.postEventHook.add(this._osf); }
     }
@@ -85,18 +101,20 @@ class ShiftLayer {
     exec(state) {
         const pm = bundle().profileManager;
         if(state) {
+            this.profile = pm.currentProfile();
             this.last = pm.currentLayer();
             pm.setLayer(pm.findLayer(this.name));
         } else {
-            pm.setLayer(this.last);
+            pm.setProfileLayer(this.profile, this.last);
+            this.profile = null;
             this.last = null;
         }
     }
 }
 
-function tog(name) { return new Toggle({layer : name}); }
-function one(name) { return new Toggle({layer : name, isOneshot : true}); }
-function prof(name, layer) { return new Toggle({profile : name, layer : name}); }
+function tog(name) { return new Toggle({layer: name}); }
+function one(name) { return new Toggle({layer: name, isOneshot: true}); } 
+function prof(name, layer) { return new Toggle({profile: name, layer: layer}); }
 
 function togback(state) {
     if(!state) return;
