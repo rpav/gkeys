@@ -19,3 +19,4 @@
   + delay + resend sufficient? => yes
   + configurable delays
 + auto-profile switching delayed until all keys up
++ watch files/dir and profile auto-reload on change
