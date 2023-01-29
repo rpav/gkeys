@@ -1,4 +1,4 @@
-const {say, prn} = require('./lib/util.js');
+const {say, str, prn} = require('./lib/util.js');
 const {bundle} = require('./lib/Bundle.js');
 
 function data() { return bundle().profileManager.currentProfileData(); }
@@ -45,6 +45,8 @@ function ToggleBack(owner) {
     stack.pop();
     if(top.profile) pm.setCurrentProfile(pm.findProfileByName(top.profile));
     if(top.layer) pm.setLayer(pm.findLayer(top.layer));
+    prn('<= ', top.profile ? str(top.profile, ':', top.layer) : top.layer);
+
     return true;
 }
 
@@ -69,7 +71,7 @@ class Toggle {
 
         let frame = {
             profile: this.config.profile ? pm.currentProfile().name : undefined,
-            layer: pm.currentLayer().name, // We always want to return to the original layer
+            layer: this.config.layer ? pm.currentLayer().name : undefined,
             owner: this.config.isOneshot ? this : undefined
         };
 
@@ -84,6 +86,7 @@ class Toggle {
         }
 
         d[ToggleLayerS].stack.push(frame);
+        prn('=> ', this.config.profile ? str(this.config.profile, ':', this.config.layer) : this.config.layer);
 
         if(this.config.layer) {
             let layer = pm.findLayer(this.config.layer);
@@ -104,8 +107,10 @@ class ShiftLayer {
             this.profile = pm.currentProfile();
             this.last = pm.currentLayer();
             pm.setLayer(pm.findLayer(this.name));
+            prn('-^ ', this.profile.name, ':', this.name);
         } else {
             pm.setProfileLayer(this.profile, this.last);
+            prn('v- ', this.profile.name, ':', this.last.name);
             this.profile = null;
             this.last = null;
         }
