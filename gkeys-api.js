@@ -25,17 +25,26 @@ class GKeys {
 const ToggleLayerS = Symbol.for("ToggleLayer");
 
 function ToggleLayerSetup() {
-    const d = D;
-    if(!d[ToggleLayerS])
-        d[ToggleLayerS] = {
+    if(D[ToggleLayerS]) return;
+
+    try {
+        const pm = bundle().profileManager;  // Why does this silently cause failure if it's not in a try block?
+        
+        D[ToggleLayerS] = {
             stack: [],
         };
+
+        pm.autoSwitchHook.add(() => {
+            D[ToggleLayerS].stack = [];
+        });
+    } catch(e) {
+        prn(e);
+    }
 }
 
 function ToggleBack(owner) {
     const pm = bundle().profileManager;
-    const d = D;
-    const stack = d[ToggleLayerS].stack;
+    const stack = D[ToggleLayerS].stack;
 
     if(stack.length == 0) return;
 
@@ -67,7 +76,6 @@ class Toggle {
         if(!state) return;
 
         const pm = bundle().profileManager;
-        const d = D;
 
         let frame = {
             profile: this.config.profile ? pm.currentProfile().name : undefined,
@@ -85,7 +93,7 @@ class Toggle {
             }
         }
 
-        d[ToggleLayerS].stack.push(frame);
+        D[ToggleLayerS].stack.push(frame);
         prn('=> ', this.config.profile ? str(this.config.profile, ':', this.config.layer) : this.config.layer);
 
         if(this.config.layer) {
@@ -118,7 +126,7 @@ class ShiftLayer {
 }
 
 function tog(name) { return new Toggle({layer: name}); }
-function one(name) { return new Toggle({layer: name, isOneshot: true}); } 
+function one(name) { return new Toggle({layer: name, isOneshot: true}); }
 function prof(name, layer) { return new Toggle({profile: name, layer: layer}); }
 
 function togback(state) {
