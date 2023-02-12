@@ -4,7 +4,8 @@ const {bundle} = require('./lib/Bundle.js');
 function data() { return bundle().profileManager.currentProfileData(); }
 const D = {};
 
-class GKeys {
+/// --- API for functions ---
+const GKeys = {
     setLayer(name) {
         const pm = bundle().profileManager;
 
@@ -14,32 +15,81 @@ class GKeys {
             return true;
         }
         return false;
-    }
+    },
 
     currentLayer() {
         const pm = bundle().profileManager;
         return pm.currentLayer().name;
-    }
+    },
+
+    send(k, state) { bundle().eventManager.sendEvent(k, state); },
+    press(k) { this.send(k, true); },
+    release(k) { this.send(k, false); },
+
+    pressAndRelease(k, delay = 50) {
+        this.send(k, true);
+        setTimeout(() => { this.send(k, false); }, delay);
+    },
+
+    tap(k, delay = 50) { return this.pressAndRelease(k, delay); },
+    tapIf(state, k, delay = 50) { if(state) return this.pressAndRelease(k, delay); },
+
+    rapid(k, delay = 50) {
+        return new Rapid(k, delay);
+    },
 }
 
+/// --- Keys ---
+
+// This is for "mashing" a key, vs simple key repeat
+class Rapid {
+    constructor(k, delay) {
+        this.ev = k;
+        this.delay = delay;
+    }
+
+    exec(state) {
+        if(state) this.start();
+        else this.stop();
+    }
+
+    start() {
+        let state = true;
+        GKeys.send(this.ev, state);
+        this._timer = setInterval(() => {
+            if(!state && this._cancel) {
+                clearInterval(this._timer);
+                this._cancel = false;
+                return;
+            }
+
+            state = !state;
+            GKeys.send(this.ev, state);
+        }, this.delay);
+
+        return this;
+    }
+
+    stop() {
+        this._cancel = true;
+    }
+};
+
+/// --- Layers ---
 const ToggleLayerS = Symbol.for("ToggleLayer");
 
 function ToggleLayerSetup() {
     if(D[ToggleLayerS]) return;
 
     try {
-        const pm = bundle().profileManager;  // Why does this silently cause failure if it's not in a try block?
-        
+        const pm = bundle().profileManager; // Why does this silently cause failure if it's not in a try block?
+
         D[ToggleLayerS] = {
             stack: [],
         };
 
-        pm.autoSwitchHook.add(() => {
-            D[ToggleLayerS].stack = [];
-        });
-    } catch(e) {
-        prn(e);
-    }
+        pm.autoSwitchHook.add(() => { D[ToggleLayerS].stack = []; });
+    } catch(e) { prn(e); }
 }
 
 function ToggleBack(owner) {
@@ -137,5 +187,5 @@ function togback(state) {
 function shft(name) { return new ShiftLayer(name); }
 
 module.exports = {
-    keys : new GKeys(), tog, togback, shft, one, prof,
+    keys : GKeys, tog, togback, shft, one, prof,
 };
