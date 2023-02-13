@@ -22,6 +22,14 @@ const GKeys = {
         return pm.currentLayer().name;
     },
 
+    currentExe() {
+        return bundle().eventManager.windowTracker.curWinExe();
+    },
+
+    currentPid() {
+        return bundle().eventManager.windowTracker.curWinPid();
+    },
+
     send(k, state) { bundle().eventManager.sendEvent(k, state); },
     press(k) { this.send(k, true); },
     release(k) { this.send(k, false); },

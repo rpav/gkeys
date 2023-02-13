@@ -21,9 +21,9 @@ require('../lib/Bundle.js')._setBundle({eventManager, profileManager, usbdev});
 profileManager.loadProfiles();
 profileManager.setupHooks(eventManager);
 
-eventManager.windowTracker.on('profile-changed', (profileName, exe) => {
+eventManager.windowTracker.on('profile-changed', (profileName, exe, pid) => {
     profileManager.delayedSetCurrentProfile(profileManager.findProfileByName(profileName), {autoSwitching: true});
-    prn("Current exe: '", exe, "'");
+    prn("Current exe: '", exe, "' (pid: ", pid, ")");
 });
 
 if(usbdev.deviceInfo) {
