@@ -45,6 +45,8 @@ const GKeys = {
     rapid(k, delay = 50) {
         return new Rapid(k, delay);
     },
+
+    tog(name) { return new ToggleKey(name); },
 }
 
 /// --- Keys ---
@@ -83,6 +85,19 @@ class Rapid {
     }
 };
 
+class ToggleKey {
+    constructor(k, config) {
+        this.ev = k;
+        this.pressed = false;
+    }
+
+    exec(state) {
+        if(!state) return;
+        this.pressed = !this.pressed;
+        GKeys.send(this.ev, this.pressed);
+    }
+}
+
 /// --- Layers ---
 const ToggleLayerS = Symbol.for("ToggleLayer");
 
@@ -117,7 +132,7 @@ function ToggleBack(owner) {
     return true;
 }
 
-class Toggle {
+class ToggleLayer {
     constructor(config) {
         this.config = config || {};
         ToggleLayerSetup();
@@ -183,9 +198,11 @@ class ShiftLayer {
     }
 }
 
-function tog(name) { return new Toggle({layer: name}); }
-function one(name) { return new Toggle({layer: name, isOneshot: true}); }
-function prof(name, layer) { return new Toggle({profile: name, layer: layer}); }
+
+// Layer functions
+function togLayer(name) { return new ToggleLayer({layer: name}); }
+function one(name) { return new ToggleLayer({layer: name, isOneshot: true}); }
+function prof(name, layer) { return new ToggleLayer({profile: name, layer: layer}); }
 
 function togback(state) {
     if(!state) return;
@@ -195,5 +212,5 @@ function togback(state) {
 function shft(name) { return new ShiftLayer(name); }
 
 module.exports = {
-    keys : GKeys, tog, togback, shft, one, prof,
+    keys : GKeys, togLayer, togback, shft, one, prof,
 };
