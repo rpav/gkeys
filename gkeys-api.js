@@ -96,6 +96,15 @@ class ToggleKey {
         this.pressed = !this.pressed;
         GKeys.send(this.ev, this.pressed);
     }
+
+    press() { 
+        if(this.pressed) return;
+        this.exec(true);
+     }
+
+     release() {
+        if(this.pressed) return this.exec(true);
+     }
 }
 
 /// --- Layers ---
