@@ -6,6 +6,7 @@ const path = require('path');
 const ps = require('process');
 const RL = require('readline')
 const rl = RL.createInterface({input: ps.stdin, output: null, terminal: true});
+const notifier = require('node-notifier');
 
 const {Key} = require('../lib/Key.js');
 const GKeyUSB = require('../lib/GKeyUSB.js');
