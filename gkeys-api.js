@@ -22,13 +22,9 @@ const GKeys = {
         return pm.currentLayer().name;
     },
 
-    currentExe() {
-        return bundle().eventManager.windowTracker.curWinExe();
-    },
+    currentExe() { return bundle().eventManager.windowTracker.curWinExe(); },
 
-    currentPid() {
-        return bundle().eventManager.windowTracker.curWinPid();
-    },
+    currentPid() { return bundle().eventManager.windowTracker.curWinPid(); },
 
     send(k, state) { bundle().eventManager.sendEvent(k, state); },
     press(k) { this.send(k, true); },
@@ -40,13 +36,13 @@ const GKeys = {
     },
 
     tap(k, delay = 50) { return this.pressAndRelease(k, delay); },
-    tapIf(state, k, delay = 50) { if(state) return this.pressAndRelease(k, delay); },
-
-    rapid(k, delay = 50) {
-        return new Rapid(k, delay);
+    tapIf(state, k, delay = 50) {
+        if(state) return this.pressAndRelease(k, delay);
     },
 
-    tog(name) { return new ToggleKey(name); },
+    rapid(k, delay = 50) { return new Rapid(k, delay); },
+
+    tog(name, config = {}) { return new ToggleKey(name, config); },
 }
 
 /// --- Keys ---
@@ -80,31 +76,49 @@ class Rapid {
         return this;
     }
 
-    stop() {
-        this._cancel = true;
-    }
+    stop() { this._cancel = true; }
 };
 
 class ToggleKey {
     constructor(k, config) {
+        config ||= {};
+
         this.ev = k;
         this.pressed = false;
+
+        if(config.whileKeys) {
+            this.whileKeys = {};
+            for(const k of config.whileKeys) this.whileKeys[k] = true;
+
+            this._whileHook = (ev, state) => {
+                if(!state || this._inCallback) return;
+                this._inCallback = true;
+
+                if(!this.whileKeys[ev]) {
+                    bundle().eventManager.preEventHook.delete(this._whileHook);
+                    this.release();
+                }
+                this._inCallback = false;
+            };
+        }
     }
 
     exec(state) {
         if(!state) return;
         this.pressed = !this.pressed;
         GKeys.send(this.ev, this.pressed);
+
+        if(this._whileHook) bundle().eventManager.preEventHook.add(this._whileHook);
     }
 
-    press() { 
+    press() {
         if(this.pressed) return;
         this.exec(true);
-     }
+    }
 
-     release() {
+    release() {
         if(this.pressed) return this.exec(true);
-     }
+    }
 }
 
 /// --- Layers ---
@@ -206,7 +220,6 @@ class ShiftLayer {
         }
     }
 }
-
 
 // Layer functions
 function togLayer(name) { return new ToggleLayer({layer: name}); }
