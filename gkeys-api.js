@@ -91,7 +91,7 @@ class ToggleKey {
             for(const k of config.whileKeys) this.whileKeys[k] = true;
 
             this._whileHook = (ev, state) => {
-                if(!state || this._inCallback) return;
+                if(!state || ev == this || this._inCallback) return;
                 this._inCallback = true;
 
                 if(!this.whileKeys[ev]) {
@@ -108,7 +108,7 @@ class ToggleKey {
         this.pressed = !this.pressed;
         GKeys.send(this.ev, this.pressed);
 
-        if(this._whileHook) bundle().eventManager.preEventHook.add(this._whileHook);
+        if(this._whileHook) { bundle().eventManager.preEventHook.set(this._whileHook, this.pressed); }
     }
 
     press() {
