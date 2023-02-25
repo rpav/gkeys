@@ -1,5 +1,6 @@
 const {say, str, prn} = require('./lib/util.js');
 const {bundle} = require('./lib/Bundle.js');
+const {Key} = require('./lib/Key.js');
 
 function data() { return bundle().profileManager.currentProfileData(); }
 const D = {};
@@ -43,6 +44,21 @@ const GKeys = {
     rapid(k, delay = 50) { return new Rapid(k, delay); },
 
     tog(name, config = {}) { return new ToggleKey(name, config); },
+
+    evEqual(a, b) {
+        if(a == b) return true;
+        
+        if(Array.isArray(a) && Array.isArray(b) && a.length == b.length) {
+            return a.every((x, i) => this.evEqual(x, b[i]));
+        }
+
+        return false;
+    },
+
+    evParse(ev) {
+        if(typeof(ev) == 'string') return (new Key(ev)).toSequence();
+        return ev;
+    },
 }
 
 /// --- Keys ---
@@ -83,12 +99,12 @@ class ToggleKey {
     constructor(k, config) {
         config ||= {};
 
-        this.ev = k;
+        this.ev = GKeys.evParse(k);
         this.pressed = false;
 
         if(config.whileKeys) {
             this.whileKeys = {};
-            for(const k of config.whileKeys) this.whileKeys[k] = true;
+            for(const k of config.whileKeys) this.whileKeys[GKeys.evParse(k)] = true;
 
             this._whileHook = (ev, state) => {
                 if(!state || ev == this || this._inCallback) return;
