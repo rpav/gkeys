@@ -5,3 +5,4 @@ dist-ssr
 *.local
 .project-root
 test.log
+*.lnk

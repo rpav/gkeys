@@ -47,7 +47,7 @@ const GKeys = {
 
     evEqual(a, b) {
         if(a == b) return true;
-        
+
         if(Array.isArray(a) && Array.isArray(b) && a.length == b.length) {
             return a.every((x, i) => this.evEqual(x, b[i]));
         }
@@ -56,7 +56,7 @@ const GKeys = {
     },
 
     evParse(ev) {
-        if(typeof(ev) == 'string') return (new Key(ev)).toSequence();
+        if(typeof (ev) == 'string') return (new Key(ev)).toSequence();
         return ev;
     },
 }
@@ -66,7 +66,7 @@ const GKeys = {
 // This is for "mashing" a key, vs simple key repeat
 class Rapid {
     constructor(k, delay) {
-        this.ev = k;
+        this.ev = GKeys.evParse(k);
         this.delay = delay;
     }
 
@@ -100,40 +100,70 @@ class ToggleKey {
         config ||= {};
 
         this.ev = GKeys.evParse(k);
-        this.pressed = false;
+        this.eventRunning = false;
+        this.justEnabled = false;
+        this.butWait = false;
 
         if(config.whileKeys) {
-            this.whileKeys = {};
-            for(const k of config.whileKeys) this.whileKeys[GKeys.evParse(k)] = true;
+            this.whileKeys = new Set;
+            this.holdKeys = new Set;
+
+            for(const k of config.whileKeys) this.whileKeys.add(GKeys.evParse(k));
+            for(const k of config.holdKeys || []) this.holdKeys.add(GKeys.evParse(k));
 
             this._whileHook = (ev, state) => {
-                if(!state || ev == this || this._inCallback) return;
+                if(!state || ev == this) return;
+
+                const parsed = GKeys.evParse(ev);
+
+                if(parsed == this.ev || this._inCallback) return;
                 this._inCallback = true;
 
-                if(!this.whileKeys[ev]) {
+                if(!this.whileKeys.has(parsed)) {
                     bundle().eventManager.preEventHook.delete(this._whileHook);
                     this.release();
                 }
+
+                // In the case we push a 'hold key' while the toggle key is still toggled,
+                // we do _not_ untoggle; e.g. Run(Press), (ToggleOn), Run(Release); Run(Press), Horse, Run(Release),
+                // (LeaveOn)
+                this.butWait = this.holdKeys.has(parsed);
                 this._inCallback = false;
             };
         }
     }
 
     exec(state) {
-        if(!state) return;
-        this.pressed = !this.pressed;
-        GKeys.send(this.ev, this.pressed);
+        // If we just pressed to enable and this is the release, do not toggle off
+        if(!state && this.justEnabled) {
+            this.justEnabled = false;
+            return;
+        }
 
-        if(this._whileHook) { bundle().eventManager.preEventHook.set(this._whileHook, this.pressed); }
+        // If we're releasing to disable, but we pressed a hold key, do not toggle off
+        if(!state && this.eventRunning && this.butWait) {
+            this.butWait = false;
+            return;
+        }
+
+        if(state == !this.eventRunning) {
+            this.eventRunning = state;
+            this.justEnabled = state;
+            GKeys.send(this.ev, this.eventRunning);
+        }
+
+        if(this._whileHook) { bundle().eventManager.preEventHook.set(this._whileHook, this.eventRunning); }
     }
 
     press() {
-        if(this.pressed) return;
+        if(this.eventRunning) return;
         this.exec(true);
     }
 
     release() {
-        if(this.pressed) return this.exec(true);
+        if(this.eventRunning) {
+            return this.exec(false);
+        }
     }
 }
 
