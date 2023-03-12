@@ -23,6 +23,10 @@ const GKeys = {
         return pm.currentLayer().name;
     },
 
+    currentLayerStack() {
+        return D[ToggleLayerS].stack;
+    },
+
     currentExe() { return bundle().eventManager.windowTracker.curWinExe(); },
 
     currentPid() { return bundle().eventManager.windowTracker.curWinPid(); },
