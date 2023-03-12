@@ -1,6 +1,7 @@
 const {say, str, prn} = require('./lib/util.js');
 const {bundle} = require('./lib/Bundle.js');
 const {Key} = require('./lib/Key.js');
+const {ValidEventMap} = require('./lib/KeyData.js');
 
 function data() { return bundle().profileManager.currentProfileData(); }
 const D = {};
@@ -23,15 +24,19 @@ const GKeys = {
         return pm.currentLayer().name;
     },
 
-    currentLayerStack() {
-        return D[ToggleLayerS].stack;
-    },
+    currentLayerStack() { return D[ToggleLayerS].stack; },
 
     currentExe() { return bundle().eventManager.windowTracker.curWinExe(); },
 
     currentPid() { return bundle().eventManager.windowTracker.curWinPid(); },
 
-    send(k, state) { bundle().eventManager.sendEvent(k, state); },
+    send(k, state, pos) { 
+        let ev = ValidEventMap[k];
+        if(ev != undefined)
+            bundle().eventManager.sendEvent(ev, state, pos);
+        else
+            prn("Invalid event: ", k);
+     },
     press(k) { this.send(k, true); },
     release(k) { this.send(k, false); },
 
@@ -107,6 +112,7 @@ class ToggleKey {
         this.eventRunning = false;
         this.justEnabled = false;
         this.butWait = false;
+        this.whileHeld = config.whileHeld;
 
         if(config.whileKeys) {
             this.whileKeys = new Set;
@@ -138,6 +144,12 @@ class ToggleKey {
     }
 
     exec(state) {
+        // Press -> toggle, Release -> toggle
+        if(this.whileHeld) {
+            GKeys.pressAndRelease(this.ev);
+            return;
+        }
+
         // If we just pressed to enable and this is the release, do not toggle off
         if(!state && this.justEnabled) {
             this.justEnabled = false;
@@ -165,9 +177,7 @@ class ToggleKey {
     }
 
     release() {
-        if(this.eventRunning) {
-            return this.exec(false);
-        }
+        if(this.eventRunning) { return this.exec(false); }
     }
 }
 
