@@ -274,7 +274,11 @@ class ShiftLayer {
             prn('-^ ', this.profile.name, ':', this.name);
         } else {
             pm.setProfileLayer(this.profile, this.last);
-            prn('v- ', this.profile.name, ':', this.last.name);
+            if(this.last)
+                prn('v- ', this.profile.name, ':', this.last.name);
+            else
+                prn('v- ', this.profile.name, '(no last)');
+
             this.profile = null;
             this.last = null;
         }
