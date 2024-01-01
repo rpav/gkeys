@@ -243,13 +243,16 @@ class ReleaseTap {
 
         this.ev = GKeys.evParse(k);
 
-        if(config.aloneOnly) {
+        if(config.aloneOnly || config.aloneExcept) {
+            this.aloneExcept = new Set;
+            for(const k of config.aloneExcept || []) this.aloneExcept.add(GKeys.evParse(k));
+
             this._aloneHook = (ev, state) => {
                 if(!state || ev == this) return;
                 
                 const parsed = GKeys.evParse(ev);
 
-                if(parsed == this.ev) return;
+                if(parsed == this.ev || this.aloneExcept.has(parsed)) return;
 
                 this.cancel = true;
             };
