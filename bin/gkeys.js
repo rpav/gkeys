@@ -23,8 +23,9 @@ profileManager.loadProfiles();
 profileManager.setupHooks(eventManager);
 
 eventManager.windowTracker.on('profile-changed', (profileName, exe, pid) => {
-    profileManager.delayedSetCurrentProfile(profileManager.findProfileByName(profileName), {autoSwitching: true});
-    prn("Current exe: '", exe, "' (pid: ", pid, ")");
+    const profile = profileManager.findProfileByName(profileName);
+    profileManager.delayedSetCurrentProfile(profile, {autoSwitching: true});
+    prn("Current exe: '", exe, "' (pid: ", pid, "); profile: '", profile.name, "' (", profile.match, ")");
 });
 
 if(usbdev.deviceInfo) {

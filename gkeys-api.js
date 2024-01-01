@@ -7,6 +7,8 @@ function data() { return bundle().profileManager.currentProfileData(); }
 const D = {};
 
 /// --- API for functions ---
+
+// GKeys state and direct event sending
 const GKeys = {
     setLayer(name) {
         const pm = bundle().profileManager;
@@ -30,13 +32,10 @@ const GKeys = {
 
     currentPid() { return bundle().eventManager.windowTracker.curWinPid(); },
 
-    send(k, state, pos) { 
-        let ev = ValidEventMap[k];
-        if(ev != undefined)
-            bundle().eventManager.sendEvent(ev, state, pos);
-        else
-            prn("Invalid event: ", k);
-     },
+    send(ev, state, pos) {
+        bundle().eventManager.sendEvent(ev, state, pos);
+    },
+
     press(k) { this.send(k, true); },
     release(k) { this.send(k, false); },
 
@@ -49,10 +48,6 @@ const GKeys = {
     tapIf(state, k, delay = 50) {
         if(state) return this.pressAndRelease(k, delay);
     },
-
-    rapid(k, delay = 50) { return new Rapid(k, delay); },
-
-    tog(name, config = {}) { return new ToggleKey(name, config); },
 
     evEqual(a, b) {
         if(a == b) return true;
@@ -68,6 +63,19 @@ const GKeys = {
         if(typeof (ev) == 'string') return (new Key(ev)).toSequence();
         return ev;
     },
+}
+
+// Make events like Toggle, etc
+const GEvent = {
+    rapid(k, delay = 50) { return new Rapid(k, delay); },
+
+    seq(ks, delay = 50) {
+        return new Sequence(ks, delay);
+    },
+
+    tog(name, config = {}) { return new ToggleKey(name, config); },
+
+    reltap(name, config = {}) { return new ReleaseTap(name, config); },
 }
 
 /// --- Keys ---
@@ -104,6 +112,52 @@ class Rapid {
     stop() { this._cancel = true; }
 };
 
+// Send keys in sequence with a delay between each
+//   - `ks` should be an array that is the sequence of events
+class Sequence {
+    constructor(ks, delay) {
+        this.ks = ks;
+        this.delay = delay;
+
+        this.cur = 0;
+        this.state = true;
+    }
+
+    exec(state) {
+        state ? this.start() : this.stop();
+    }
+
+    sendCurrent() {
+        GKeys.send(this.ks[this.cur], this.state);
+    }
+
+    start() {
+        this.sendCurrent();
+        this._timer = setInterval(() => {
+            if(!this.state && this._cancel) {
+                clearInterval(this._timer);
+                this._cancel = false;
+                return;
+            }
+
+            this.state = !this.state;
+            if(this.state) this.cur++;
+
+            if(this.cur >= this.ks.length)
+                this.cur = 0;
+
+            this.sendCurrent();
+        }, this.delay);
+    }
+
+    stop() { this._cancel = true; }
+}
+
+// Click (press/release) to hold/unhold the key... with some special utility:
+// - whileHeld: Boolean: toggled on/off on key press/release; i.e. press is a full click, release is full click
+// - whileKeys: Array: if present, key is only held while any `whileKeys` are pressed; it is released if another key is pressed
+// - holdKeys: Array: if a key in this list is pressed while the ToggleKey is _held_, do not release; useful for doubling
+//             with a shift key
 class ToggleKey {
     constructor(k, config) {
         config ||= {};
@@ -178,6 +232,39 @@ class ToggleKey {
 
     release() {
         if(this.eventRunning) { return this.exec(false); }
+    }
+}
+
+// Tap (press and release) a key _on release_, with utility:
+// - aloneOnly: if another key is pressed while this is held, do not trigger the key; useful for doubling with shifting
+class ReleaseTap {
+    constructor(k, config) {
+        config ||= {};
+
+        this.ev = GKeys.evParse(k);
+
+        if(config.aloneOnly) {
+            this._aloneHook = (ev, state) => {
+                if(!state || ev == this) return;
+                
+                const parsed = GKeys.evParse(ev);
+
+                if(parsed == this.ev) return;
+
+                this.cancel = true;
+            };
+        }
+    }
+
+    exec(state) {
+        if(state) {
+            if(this._aloneHook) bundle().eventManager.preEventHook.set(this._aloneHook);
+            return;
+        }
+
+        if(this.cancel) return;
+
+        GKeys.pressAndRelease(this.ev);
     }
 }
 
@@ -298,5 +385,8 @@ function togback(state) {
 function shft(name) { return new ShiftLayer(name); }
 
 module.exports = {
-    keys : GKeys, togLayer, togback, shft, one, prof,
+    keys : GKeys, 
+    ev : GEvent,
+    
+    togLayer, togback, shft, one, prof,
 };
